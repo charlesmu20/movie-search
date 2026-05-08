@@ -8,19 +8,30 @@
 </head>
 <body>
     <h1>電影搜尋網站</h1>
-    <div class="search-area">
-        <input id="keyword" type="text" placeholder="請輸入電影名稱"></input>
-        <button id="search">搜尋</button>
-    </div>
-    <p id="loading"></p>
-    <p id="empty"></p>
-    <p id="total"></p>
-    <div id="result"></div>
+    <nav>
+        <span id="nav-search">搜尋</span>
+        <span id="nav-favorite">收藏</span>
+    </nav>
     <div id="detail"></div>
-    <div id="pagination">
-        <button id="prev">上一頁</button>
-        <span id="pageNum">1</span>
-        <button id="next">下一頁</button>
+    <div id="search-page">
+        <div class="search-area">
+            <input id="keyword" type="text" placeholder="請輸入電影名稱"></input>
+            <button id="search">搜尋</button>
+        </div>
+        <p id="loading"></p>
+        <p id="total"></p>
+        <p id="empty"></p>
+        <div id="result" class="movie-grid"></div>
+        <div id="pagination">
+            <button id="prev">上一頁</button>
+            <span id="pageNum">1</span>
+            <button id="next">下一頁</button>
+        </div>
+    </div>
+    <div id="favorite-page">
+        <h2>我的收藏</h2>
+        <p id="no-favorite">目前沒有收藏的電影</p>
+        <div id="favorite-list" class="movie-grid"></div>
     </div>
     <script type="module" src="movie.js"></script>
 </body>

@@ -10,8 +10,21 @@ const paginationDiv=document.getElementById("pagination");
 const prevBtn=document.getElementById("prev");
 const nextBtn=document.getElementById("next");
 const pageNum=document.getElementById("pageNum");
+const searchPage=document.getElementById("search-page");
+const favoritePage=document.getElementById("favorite-page");
+const favoriteListDiv=document.getElementById("favorite-list");
+const navSearch=document.getElementById("nav-search");
+const navFavorite=document.getElementById("nav-favorite");
+const noFavoriteP=document.getElementById("no-favorite");
 let currentPage=1;
 let totalPage=1;//用來算出總頁數
+let fromPage="";
+//建立收藏陣列
+let favorites=JSON.parse(localStorage.getItem("favorites"))||[];
+//收藏函式
+function saveFavorites(){
+    localStorage.setItem("favorites",JSON.stringify(favorites));
+}
 //getmovie函式
 async function getmovie(){
     emptyP.textContent="";
@@ -29,6 +42,7 @@ async function getmovie(){
     detailDiv.innerHTML="";
     if (data.Response==='False'){
         emptyP.textContent="找不到結果";
+        paginationDiv.style.display="none";
         return;
     }
     //總共幾筆資料
@@ -45,9 +59,8 @@ async function getmovie(){
           ` ;
         //每個電影div上建立監聽事件
         movieDiv.addEventListener('click',function(){
-            resultDiv.style.display="none";//先把搜索完的結果隱藏
-            totalP.textContent = "";//把總筆數清空
-            paginationDiv.style.display="none";//把分頁按鈕隱藏
+            fromPage = "search";
+            searchPage.style.display = "none";//點擊後把搜尋頁面隱藏
             getmovieDetail(movie.imdbID);
         });
         resultDiv.appendChild(movieDiv);
@@ -65,7 +78,10 @@ async function getmovieDetail(id){
         const data=await res.json();
         //抓完資料更新到畫面
         detailDiv.innerHTML=`
-            <button id="back">返回</button>
+            <div id="detail-btns">
+                <button id="back">返回</button>
+                <button id="addFavorite"></button>
+            </div>
             <div id="detail-content">
                 <img src="${data.Poster}" onerror="this.src='https://placehold.co/300x450?text=No+Image'">
                 <div id="detail-info">
@@ -86,14 +102,70 @@ async function getmovieDetail(id){
         //返回按鈕監聽事件
         const backBtn=document.getElementById("back");
         backBtn.addEventListener('click',()=>{
-            resultDiv.style.display="grid";
-            detailDiv.innerHTML="";
-            paginationDiv.style.display="flex";
+            if(fromPage==="search"){
+                detailDiv.innerHTML="";
+                searchPage.style.display="block";
+            }
+            else if(fromPage==="favorite"){
+                detailDiv.innerHTML="";
+                renderFavoriteList();
+                favoritePage.style.display="block";
+            }
         });
-    }
+        //收藏按鈕顯示的文字
+        const addFavoriteBtn=document.getElementById("addFavorite");
+        if(favorites.some(movie=>movie.id===id)){
+            addFavoriteBtn.textContent="❤️ 已收藏";
+        } else {
+            addFavoriteBtn.textContent="🤍 收藏";
+        }
+        //收藏按鈕監聽事件
+        addFavoriteBtn.addEventListener('click',()=>{
+            if(favorites.some(movie=>movie.id===id)){
+                // 取消收藏
+                favorites=favorites.filter(movie=>movie.id!==id);
+                saveFavorites();
+                addFavoriteBtn.textContent="🤍 收藏";
+            }
+            else{
+            //收藏
+            favorites.push({
+                id:data.imdbID,
+                title:data.Title,
+                poster:data.Poster
+            })
+            saveFavorites();
+            addFavoriteBtn.textContent="❤️ 已收藏";
+            }
+    })
+}
     catch(err){
         console.log(err)
     }
+}
+//render收藏清單函式
+function renderFavoriteList(){
+        favoriteListDiv.innerHTML = "";
+        //如果收藏清單是空的，顯示提示訊息
+        if(favorites.length===0){
+            noFavoriteP.style.display="block";
+            return
+        }
+        noFavoriteP.style.display="none";
+        favorites.forEach(movie=>{
+            const movieDiv=document.createElement("div");
+            movieDiv.innerHTML += `
+                <img src="${movie.poster}" onerror="this.src='https://placehold.co/300x450?text=No+Image'">
+                <p>${movie.title}</p>
+          ` ;
+            favoriteListDiv.appendChild(movieDiv);
+        //每個電影div上建立監聽事件
+        movieDiv.addEventListener('click',function(){
+        favoritePage.style.display="none";
+        fromPage = "favorite";
+        getmovieDetail(movie.id);
+        });
+        })
 }
 //搜尋按鈕監聽事件
 searchBtn.addEventListener('click',()=>{
@@ -126,4 +198,18 @@ nextBtn.addEventListener('click',()=>{
         getmovie();
         pageNum.textContent=currentPage;
     }
+})
+//nav監聽事件
+navSearch.addEventListener('click',()=>{
+    searchPage.style.display="block";
+    favoritePage.style.display="none";
+    detailDiv.innerHTML="";
+})
+navFavorite.addEventListener('click',()=>{
+    searchPage.style.display="none";
+    favoritePage.style.display="block";
+    detailDiv.innerHTML="";
+    favoriteListDiv.innerHTML = "";
+    //顯示收藏清單
+    renderFavoriteList();
 })
