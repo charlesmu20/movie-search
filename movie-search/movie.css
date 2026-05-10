@@ -26,9 +26,17 @@ nav span{
     font-size: 18px;
     cursor: pointer;
     color: #aaaaaa;
+    text-decoration:underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 8px;
 }
 nav span:hover {
     color: #ffffff;
+    text-decoration-color: #4d4c4c;
+}
+nav span.active {
+    color: #ffffff;
+    text-decoration-color: #ffffff;
 }
 /* 搜尋區域 */
 .search-area{
@@ -90,17 +98,30 @@ nav span:hover {
     padding:10px 12px;
     cursor: pointer;
     transition: transform 0.2s;
-    background-color: #1f1f1f;
-    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
 }
 .movie-grid div:hover{
     transform: scale(1.05);
+}
+.heart-btn{
+    display: none;
+    position: absolute;
+    top: 8px;
+    right: 18px;
+    cursor: pointer;
+    font-size: 30px;
+    border: none;
+    background: transparent;
+}
+.movie-grid div:hover .heart-btn {
+    display: block;
 }
 .movie-grid img{
     width:100%;
     height:auto;
     object-fit: cover;
-    border-radius: 8px;
+    border-radius: 2px;
 }
 /* 詳細資訊區域 */
 #detail{
@@ -150,7 +171,15 @@ nav span:hover {
     font-size: 20px;
     font-weight: bold;
     color: #ff2832;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
+}
+.rating{
+    background-color: #e50914;
+    color: #ffffff;
+    font-size: 16px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 20px;
 }
 /* 分頁區域 */
 #pagination{

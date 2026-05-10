@@ -55,6 +55,7 @@ async function getmovie(){
         const movieDiv=document.createElement("div");
         movieDiv.innerHTML += `
                 <img src="${movie.Poster}" onerror="this.src='https://placehold.co/300x450?text=No+Image'">
+                <button class="heart-btn">🤍</button>
                 <p>${movie.Title}</p>
           ` ;
         //每個電影div上建立監聽事件
@@ -63,6 +64,32 @@ async function getmovie(){
             searchPage.style.display = "none";//點擊後把搜尋頁面隱藏
             getmovieDetail(movie.imdbID);
         });
+        //收藏圖示（愛心）按鈕顯示與監聽事件
+        const heartBtn=movieDiv.querySelector(".heart-btn");
+        heartBtn.movieId = movie.imdbID;//把imdbID存在愛心按鈕的屬性裡，等一下點擊的時候可以知道是哪一部電影
+        if(favorites.some(f => f.id === movie.imdbID)){
+            heartBtn.textContent = "❤️"
+        } 
+        else {
+            heartBtn.textContent = "🤍"
+        }
+        heartBtn.addEventListener('click',(e)=>{
+            e.stopPropagation();
+            if(favorites.some(f => f.id === movie.imdbID)){
+                favorites=favorites.filter(f=>f.id!==movie.imdbID);
+                saveFavorites();
+                heartBtn.textContent = "🤍"
+            }
+            else{
+                favorites.push({
+                id:movie.imdbID,
+                title:movie.Title,
+                poster:movie.Poster
+            })
+            saveFavorites();
+            heartBtn.textContent = "❤️"
+            }
+        })
         resultDiv.appendChild(movieDiv);
     })
     }
@@ -85,7 +112,7 @@ async function getmovieDetail(id){
             <div id="detail-content">
                 <img src="${data.Poster}" onerror="this.src='https://placehold.co/300x450?text=No+Image'">
                 <div id="detail-info">
-                    <p class="detail-title">${data.Title}</p>
+                    <p class="detail-title">${data.Title}<span class="rating">${data.imdbRating}</span></p>
                     <p>年份：${data.Year}</p>
                     <p>類型：${data.Genre}</p>
                     <p>導演：${data.Director}</p>
@@ -93,7 +120,6 @@ async function getmovieDetail(id){
                     <p>片長：${data.Runtime}</p>
                     <p>語言：${data.Language}</p>
                     <p>國家：${data.Country}</p>
-                    <p>評分：${data.imdbRating}</p>
                     <p>獎項：${data.Awards}</p>
                     <p>簡介：${data.Plot}</p>
                 </div>
@@ -111,6 +137,7 @@ async function getmovieDetail(id){
                 renderFavoriteList();
                 favoritePage.style.display="block";
             }
+        updateHeart();
         });
         //收藏按鈕顯示的文字
         const addFavoriteBtn=document.getElementById("addFavorite");
@@ -167,6 +194,13 @@ function renderFavoriteList(){
         });
         })
 }
+//愛心圖示更新函式
+function updateHeart(){
+    document.querySelectorAll(".heart-btn").forEach(btn=>{
+        btn.textContent = favorites.some(f=>f.id === btn.movieId)?"❤️":"🤍  "
+    })
+}
+    
 //搜尋按鈕監聽事件
 searchBtn.addEventListener('click',()=>{
     currentPage=1;
@@ -201,11 +235,16 @@ nextBtn.addEventListener('click',()=>{
 })
 //nav監聽事件
 navSearch.addEventListener('click',()=>{
+    navSearch.classList.add("active");
+    navFavorite.classList.remove("active");
     searchPage.style.display="block";
     favoritePage.style.display="none";
     detailDiv.innerHTML="";
+    updateHeart();
 })
 navFavorite.addEventListener('click',()=>{
+    navSearch.classList.remove("active");
+    navFavorite.classList.add("active");
     searchPage.style.display="none";
     favoritePage.style.display="block";
     detailDiv.innerHTML="";
@@ -213,3 +252,4 @@ navFavorite.addEventListener('click',()=>{
     //顯示收藏清單
     renderFavoriteList();
 })
+//nav切換函式
