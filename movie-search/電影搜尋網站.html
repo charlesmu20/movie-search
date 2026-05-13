@@ -9,13 +9,24 @@
 <body>
     <h1>電影搜尋網站</h1>
     <nav>
-        <span id="nav-search" class="active">搜尋</span>
-        <span id="nav-favorite">收藏</span>
+        <button id="hamburger">☰</button>
+        <div id="nav-links">
+            <span id="nav-search" class="active">搜尋</span>
+            <span id="nav-favorite">收藏</span>
+        </div>
     </nav>
     <div id="detail"></div>
     <div id="search-page">
         <div class="search-area">
-            <input id="keyword" type="text" placeholder="請輸入電影名稱"></input>
+            <div id="input-wrapper">
+                <input id="keyword" type="text" placeholder="請輸入電影名稱"></input>
+                <div id="searchHistoryList"></div>
+            </div>
+            <select id="type-filter">
+                <option value="">全部</option>
+                <option value="movie">電影</option>
+                <option value="series">影集</option>
+            </select>
             <button id="search">搜尋</button>
         </div>
         <p id="loading"></p>

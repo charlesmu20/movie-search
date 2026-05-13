@@ -3,6 +3,8 @@ const searchBtn=document.getElementById("search");
 const resultDiv=document.getElementById("result");
 const detailDiv=document.getElementById("detail");
 const keywordInput=document.getElementById("keyword");
+const searchHistoryList=document.getElementById("searchHistoryList");
+const typeFilter = document.getElementById("type-filter")
 const loadingP=document.getElementById("loading");
 const emptyP=document.getElementById("empty");
 const totalP=document.getElementById("total");
@@ -16,6 +18,7 @@ const favoriteListDiv=document.getElementById("favorite-list");
 const navSearch=document.getElementById("nav-search");
 const navFavorite=document.getElementById("nav-favorite");
 const noFavoriteP=document.getElementById("no-favorite");
+
 let currentPage=1;
 let totalPage=1;//用來算出總頁數
 let fromPage="";
@@ -25,16 +28,23 @@ let favorites=JSON.parse(localStorage.getItem("favorites"))||[];
 function saveFavorites(){
     localStorage.setItem("favorites",JSON.stringify(favorites));
 }
+//搜尋紀錄localStorage
+let searchHistory=JSON.parse(localStorage.getItem("searchHistory"))||[];
+//搜尋紀錄儲存函式
+function saveSearchHistory(){
+    localStorage.setItem("searchHistory",JSON.stringify(searchHistory));
+}
 //getmovie函式
 async function getmovie(){
     emptyP.textContent="";
     totalP.textContent="";
     resultDiv.style.display="grid";
     loadingP.textContent="搜尋中...";
+    searchHistoryList.style.display = "none"
     //先透過keyword抓資料
     let keyword=document.getElementById("keyword").value;
     try{
-    const res=await fetch(`https://www.omdbapi.com/?s=${keyword}&page=${currentPage}&apikey=ef58f175`);
+    const res=await fetch(`https://www.omdbapi.com/?s=${keyword}&type=${typeFilter.value}&page=${currentPage}&apikey=ef58f175`);
     const data=await res.json();
     //已經抓完資料開始處理畫面
     loadingP.textContent=""
@@ -44,6 +54,11 @@ async function getmovie(){
         emptyP.textContent="找不到結果";
         paginationDiv.style.display="none";
         return;
+    }
+    //搜尋紀錄儲存
+    if(!searchHistory.includes(keyword)){
+        searchHistory.unshift(keyword);
+        saveSearchHistory();
     }
     //總共幾筆資料
     totalP.textContent=`Total:${data.totalResults} 筆`;
@@ -100,6 +115,7 @@ async function getmovie(){
 
 //getmovieDetail函式
 async function getmovieDetail(id){
+    detailDiv.innerHTML="<div class='spinner'></div>";
     try{
         const res=await fetch(`https://www.omdbapi.com/?i=${id}&apikey=ef58f175`);
         const data=await res.json();
@@ -200,7 +216,40 @@ function updateHeart(){
         btn.textContent = favorites.some(f=>f.id === btn.movieId)?"❤️":"🤍  "
     })
 }
-    
+//搜尋歷史紀錄render
+function renderHistory(){
+    searchHistoryList.innerHTML="";
+    searchHistory.forEach(keyword=>{
+        const item=document.createElement("div");
+        item.innerHTML=`
+        <span class="history-keyword">${keyword}</span>
+        <span class="deleteBtn">❌</span>
+        `
+        item.querySelector(".history-keyword").addEventListener('click',()=>{
+            keywordInput.value=keyword;
+            searchHistoryList.style.display="none";
+        })
+        item.querySelector(".deleteBtn").addEventListener('click',(e)=>{
+            e.stopPropagation();
+            searchHistory=searchHistory.filter(k=>k!==keyword);
+            saveSearchHistory();
+            renderHistory();
+        });
+        searchHistoryList.appendChild(item);
+    })
+}
+//輸入匡監聽事件（顯示歷史紀錄)
+keywordInput.addEventListener('focus',()=>{
+    if(searchHistory.length>0){
+    renderHistory();
+    searchHistoryList.style.display="block";
+    }
+})
+document.addEventListener('mousedown', (e) => {
+    if(!searchHistoryList.contains(e.target)&& e.target!==keywordInput){
+    searchHistoryList.style.display = "none"
+}
+})
 //搜尋按鈕監聽事件
 searchBtn.addEventListener('click',()=>{
     currentPage=1;
@@ -240,6 +289,7 @@ navSearch.addEventListener('click',()=>{
     searchPage.style.display="block";
     favoritePage.style.display="none";
     detailDiv.innerHTML="";
+    navLinks.classList.remove("open")
     updateHeart();
 })
 navFavorite.addEventListener('click',()=>{
@@ -249,7 +299,14 @@ navFavorite.addEventListener('click',()=>{
     favoritePage.style.display="block";
     detailDiv.innerHTML="";
     favoriteListDiv.innerHTML = "";
+    navLinks.classList.remove("open")
     //顯示收藏清單
     renderFavoriteList();
+})
+//漢堡選單按鈕監聽事件
+const hamburgerBtn=document.getElementById("hamburger");
+const navLinks=document.getElementById("nav-links");
+hamburgerBtn.addEventListener('click',()=>{
+    navLinks.classList.toggle("open");
 })
 //nav切換函式
